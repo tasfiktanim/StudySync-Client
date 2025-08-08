@@ -3,8 +3,8 @@
 ## 📌 Overview
 A short description about the project and its purpose.
 
-**Live Site:** [View Here](https://your-live-site-link.com)  
-**Repository:** [GitHub Repo](https://github.com/yourusername/project-name)
+**Live Site:** [View Here](https://study-sync-3e696.web.app/)  
+**Repository:** [GitHub Repo](https://github.com/tasfiktanim/StudySync-Client)
 
 ---
 
@@ -39,23 +39,6 @@ A short description about the project and its purpose.
 - cors
 
 ---
-
-## ⚡ Getting Started (Run Locally)
-1. Clone the repo
-```bash
-git clone https://github.com/yourusername/project-name.git
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
