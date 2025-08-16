@@ -87,6 +87,7 @@ const Footer = () => {
                         <FaLinkedinIn className="text-xl" />
                         <FaYoutube className="text-xl" />
                         <FaTiktok className="text-xl" />
+                        <FaWhatsapp className="text-xl" />
                     </div>
                 </div>
             </div>
