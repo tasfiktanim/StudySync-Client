@@ -5,6 +5,7 @@ import CountUpPage from './CountUpPage';
 import StudySessions from '../dashboard/StudySessions';
 import NotesBanner from './NotesBanner';
 import VideoSection from './VideoSection';
+import SSCAndHSC from './SSCAndHSC';
 
 const Home = () => {
     return (
@@ -14,6 +15,7 @@ const Home = () => {
             <Testimonials />
             <NotesBanner />
             <VideoSection />
+            <SSCAndHSC />
         </div>
     );
 };

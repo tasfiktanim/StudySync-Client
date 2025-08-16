@@ -26,6 +26,8 @@ import ViewMaterials from "../Pages/Tutor/ViewMaterials";
 import BookedSessionDetails from "../Pages/dashboard/Student/BookedSessionDetails";
 import DashboardHome from "../Pages/dashboard/Dashboard/DashboardHome";
 import TutorRoute from "../Routes/TutorRoute";
+import Overview from "../Pages/dashboard/Overview";
+import ProfilePage from "../Pages/dashboard/ProfilePage";
 
 
 
@@ -67,7 +69,7 @@ export const router = createBrowserRouter([
         children: [
             {
                 index: true,
-                Component: DashboardHome,
+                Component: Overview,
             },
             {
                 path: 'booked-sessions',
@@ -138,6 +140,16 @@ export const router = createBrowserRouter([
                 path: 'study-materials',
                 element: <StudyMaterials />,
             },
+            {
+                path: "/dashboard/overview",
+                element: <Overview />,
+            },
+            {
+                path: "profile",
+                element: <ProfilePage />,
+            }
+
+
         ]
     },
 ]);

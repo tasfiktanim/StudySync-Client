@@ -56,6 +56,12 @@ const DashboardLayout = () => {
           {/* Scrollable Nav Area */}
           <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-2">
             {/* Basic User Links */}
+            <NavLink to="/dashboard/overview" className={navLinkClass}>
+              <FaBook size={18} /> Overview
+            </NavLink>
+            <NavLink to="/dashboard/profile" className={navLinkClass}>
+              <FaUserShield size={18} /> Profile
+            </NavLink>
             <NavLink to="/dashboard/booked-sessions" className={navLinkClass}>
               <FaBookmark size={18} /> Booked Sessions
             </NavLink>

@@ -21,14 +21,13 @@ const Navbar = () => {
     }
   };
 
-  // Common routes (everyone sees these)
-  const commonLinks = (
+  const navLinks = (
     <>
       <li>
         <NavLink
           to="/"
           className={({ isActive }) =>
-            `block py-2 px-4 rounded-lg ${
+            `block py-2 px-4 text-sm sm:text-base rounded-lg transition ${
               isActive
                 ? 'text-primary font-semibold bg-primary/10'
                 : 'text-gray-700 hover:text-primary hover:bg-gray-100'
@@ -42,7 +41,7 @@ const Navbar = () => {
         <NavLink
           to="/dashboard/our-tutors"
           className={({ isActive }) =>
-            `block py-2 px-4 rounded-lg ${
+            `block py-2 px-4 text-sm sm:text-base rounded-lg transition ${
               isActive
                 ? 'text-primary font-semibold bg-primary/10'
                 : 'text-gray-700 hover:text-primary hover:bg-gray-100'
@@ -56,7 +55,7 @@ const Navbar = () => {
         <NavLink
           to="/dashboard/tutors"
           className={({ isActive }) =>
-            `block py-2 px-4 rounded-lg ${
+            `block py-2 px-4 text-sm sm:text-base rounded-lg transition ${
               isActive
                 ? 'text-primary font-semibold bg-primary/10'
                 : 'text-gray-700 hover:text-primary hover:bg-gray-100'
@@ -66,17 +65,27 @@ const Navbar = () => {
           Be Our Tutor
         </NavLink>
       </li>
-    </>
-  );
-
-  // Extra routes for logged-in users
-  const userLinks = (
-    <>
+      {!roleLoading && (role === 'Instructor' || role === 'Admin') && (
+        <li>
+          <NavLink
+            to="/dashboard/sessions"
+            className={({ isActive }) =>
+              `block py-2 px-4 text-sm sm:text-base rounded-lg transition ${
+                isActive
+                  ? 'text-primary font-semibold bg-primary/10'
+                  : 'text-gray-700 hover:text-primary hover:bg-gray-100'
+              }`
+            }
+          >
+            Create Sessions
+          </NavLink>
+        </li>
+      )}
       <li>
         <NavLink
           to="/dashboard/my-created-sessions"
           className={({ isActive }) =>
-            `block py-2 px-4 rounded-lg ${
+            `block py-2 px-4 text-sm sm:text-base rounded-lg transition ${
               isActive
                 ? 'text-primary font-semibold bg-primary/10'
                 : 'text-gray-700 hover:text-primary hover:bg-gray-100'
@@ -86,39 +95,7 @@ const Navbar = () => {
           Study Sessions
         </NavLink>
       </li>
-      <li>
-        <NavLink
-          to="/dashboard"
-          className={({ isActive }) =>
-            `block py-2 px-4 rounded-lg ${
-              isActive
-                ? 'text-primary font-semibold bg-primary/10'
-                : 'text-gray-700 hover:text-primary hover:bg-gray-100'
-            }`
-          }
-        >
-          Dashboard
-        </NavLink>
-      </li>
     </>
-  );
-
-  // Protected routes (Instructor / Admin only)
-  const protectedLinks = !roleLoading && (role === 'Instructor' || role === 'Admin') && (
-    <li>
-      <NavLink
-        to="/dashboard/sessions"
-        className={({ isActive }) =>
-          `block py-2 px-4 rounded-lg ${
-            isActive
-              ? 'text-primary font-semibold bg-primary/10'
-              : 'text-gray-700 hover:text-primary hover:bg-gray-100'
-          }`
-        }
-      >
-        Create Sessions
-      </NavLink>
-    </li>
   );
 
   return (
@@ -127,7 +104,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between py-3">
           {/* Left: Logo + Mobile Menu */}
           <div className="flex items-center gap-3">
-            {/* Mobile Menu */}
+            {/* Mobile Dropdown */}
             <div className="dropdown lg:hidden">
               <label tabIndex={0} className="btn btn-ghost p-2">
                 <FiMenu className="h-6 w-6 text-gray-700" />
@@ -136,15 +113,13 @@ const Navbar = () => {
                 tabIndex={0}
                 className="menu dropdown-content mt-2 z-[999] p-2 shadow-lg bg-white rounded-lg w-[90vw] max-w-[300px] space-y-1"
               >
-                {commonLinks}
-                {user && userLinks}
-                {protectedLinks}
+                {navLinks}
                 {!user ? (
                   <>
                     <li>
                       <NavLink
                         to="/login"
-                        className="block py-2 px-4 rounded-lg text-gray-700 hover:text-primary hover:bg-gray-100 transition"
+                        className="block py-2 px-4 text-sm sm:text-base text-gray-700 hover:text-primary hover:bg-gray-100 rounded-lg transition"
                       >
                         Login
                       </NavLink>
@@ -152,21 +127,31 @@ const Navbar = () => {
                     <li>
                       <NavLink
                         to="/signup"
-                        className="block py-2 px-4 rounded-lg text-gray-700 hover:text-primary hover:bg-gray-100 transition"
+                        className="block py-2 px-4 text-sm sm:text-base text-gray-700 hover:text-primary hover:bg-gray-100 rounded-lg transition"
                       >
                         Sign Up
                       </NavLink>
                     </li>
                   </>
                 ) : (
-                  <li>
-                    <button
-                      onClick={handleLogout}
-                      className="block py-2 px-4 text-red-600 hover:bg-red-100 rounded-lg w-full text-left"
-                    >
-                      Logout
-                    </button>
-                  </li>
+                  <>
+                    <li>
+                      <NavLink
+                        to="/dashboard"
+                        className="block py-2 px-4 text-sm sm:text-base text-gray-700 hover:text-primary hover:bg-gray-100 rounded-lg transition"
+                      >
+                        Dashboard
+                      </NavLink>
+                    </li>
+                    <li>
+                      <button
+                        onClick={handleLogout}
+                        className="block py-2 px-4 text-sm sm:text-base text-red-600 hover:bg-red-100 rounded-lg transition w-full text-left"
+                      >
+                        Logout
+                      </button>
+                    </li>
+                  </>
                 )}
               </ul>
             </div>
@@ -181,13 +166,9 @@ const Navbar = () => {
             </NavLink>
           </div>
 
-          {/* Desktop Links */}
+          {/* Center (Desktop Links) */}
           <div className="hidden lg:flex">
-            <ul className="flex space-x-2 font-medium">
-              {commonLinks}
-              {user && userLinks}
-              {protectedLinks}
-            </ul>
+            <ul className="flex space-x-2 font-medium">{navLinks}</ul>
           </div>
 
           {/* Right Side (Auth Buttons / Profile) */}
@@ -209,6 +190,12 @@ const Navbar = () => {
               </>
             ) : (
               <div className="flex items-center gap-2 sm:gap-3">
+                <NavLink
+                  to="/dashboard"
+                  className="btn btn-outline btn-sm sm:btn-md rounded-full text-gray-700 hover:bg-primary hover:text-white transition"
+                >
+                  Dashboard
+                </NavLink>
                 <button
                   onClick={handleLogout}
                   className="btn btn-error btn-sm sm:btn-md rounded-full shadow-md hover:bg-red-600 transition"
