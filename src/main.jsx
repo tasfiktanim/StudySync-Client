@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router';
-import { Toaster } from 'react-hot-toast'; // ✅ Import Toaster
+import { Toaster } from 'react-hot-toast'; 
 import AuthProvider from './context/AuthProvider';
 import { router } from './Router/router';
 import './index.css';
