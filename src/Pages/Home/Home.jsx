@@ -4,17 +4,16 @@ import Testimonials from './Testimonials';
 import CountUpPage from './CountUpPage';
 import StudySessions from '../dashboard/StudySessions';
 import NotesBanner from './NotesBanner';
-import DownloadAppSection from './DownloadAppSection';
+import VideoSection from './VideoSection';
 
 const Home = () => {
     return (
         <div className="flex flex-col gap-16"> 
             <Banner />
             <StudySessions />
-            <CountUpPage />
             <Testimonials />
             <NotesBanner />
-            <DownloadAppSection />
+            <VideoSection />
         </div>
     );
 };
