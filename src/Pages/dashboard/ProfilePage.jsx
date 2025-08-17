@@ -1,129 +1,123 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import useAuth from "../../Hooks/useAuth"; // your custom auth hook
+import { toast } from "react-toastify";
 
 const ProfilePage = () => {
-  // Sample initial user data
-  const initialUser = {
-    image: "https://i.ibb.co.com/r2bwRmX5/DSC-1804seo.jpg",
-    name: "Tasfik Hasan Tanim",
-    email: "tasfiktanimofficial@gmail.com",
-    phone: "+880 1234 567890",
-    address: "Rajshahi, Bangladesh",
-    bio: "Web developer and learner"
-  };
+  const { user } = useAuth(); // Assuming `user` has { name, email, photoURL, phone, address }
+  const [profile, setProfile] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    photoURL: "",
+  });
+  const [isEditing, setIsEditing] = useState(false);
 
-  const [user, setUser] = useState(initialUser);
-  const [editMode, setEditMode] = useState(false);
+  useEffect(() => {
+    if (user) {
+      setProfile({
+        name: user.displayName || "",
+        email: user.email || "",
+        phone: user.phoneNumber || "",
+        address: user.address || "",
+        photoURL: user.photoURL || "",
+      });
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setUser((prev) => ({ ...prev, [name]: value }));
+    setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    // You can integrate an API call here if needed
-    console.log("Updated user data:", user);
-    setEditMode(false);
-    alert("Profile updated successfully!");
+  const handleUpdate = () => {
+    // Replace with API call if you want to save changes
+    toast.success("Profile updated successfully!");
+    setIsEditing(false);
   };
 
   return (
-    <div className="max-w-4xl mx-auto my-10 p-6 bg-white shadow-lg rounded-lg">
-      <div className="flex flex-col md:flex-row items-center md:items-start">
-        <div className="flex-shrink-0">
+    <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
+      <h1 className="text-2xl font-bold mb-4">My Profile</h1>
+
+      <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+        <div>
           <img
-            src={user.image}
-            alt="User Profile"
+            src={profile.photoURL || "https://via.placeholder.com/150"}
+            alt="Profile"
             className="w-32 h-32 rounded-full object-cover border-2 border-blue-500"
           />
         </div>
 
-        <div className="mt-4 md:mt-0 md:ml-6 flex-1 w-full">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">{user.name}</h2>
-            <button
-              onClick={() => setEditMode(!editMode)}
-              className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
-            >
-              {editMode ? "Cancel" : "Edit"}
-            </button>
+        <div className="flex-1 w-full space-y-4">
+          <div>
+            <label className="block text-gray-700 font-semibold">Name</label>
+            <input
+              type="text"
+              name="name"
+              value={profile.name}
+              onChange={handleChange}
+              disabled={!isEditing}
+              className="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
-          <div className="mt-4 space-y-4">
-            {/* Name */}
-            <div>
-              <label className="block font-semibold">Name:</label>
-              {editMode ? (
-                <input
-                  type="text"
-                  name="name"
-                  value={user.name}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2 mt-1"
-                />
-              ) : (
-                <p>{user.name}</p>
-              )}
-            </div>
+          <div>
+            <label className="block text-gray-700 font-semibold">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={profile.email}
+              disabled
+              className="w-full border rounded px-3 py-2 mt-1 bg-gray-100 cursor-not-allowed"
+            />
+          </div>
 
-            {/* Email */}
-            <div>
-              <label className="block font-semibold">Email:</label>
-              <p>{user.email}</p> {/* Email usually not editable */}
-            </div>
+          <div>
+            <label className="block text-gray-700 font-semibold">Phone Number</label>
+            <input
+              type="text"
+              name="phone"
+              value={profile.phone}
+              onChange={handleChange}
+              disabled={!isEditing}
+              className="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
-            {/* Phone */}
-            <div>
-              <label className="block font-semibold">Phone:</label>
-              {editMode ? (
-                <input
-                  type="text"
-                  name="phone"
-                  value={user.phone}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2 mt-1"
-                />
-              ) : (
-                <p>{user.phone}</p>
-              )}
-            </div>
+          <div>
+            <label className="block text-gray-700 font-semibold">Address</label>
+            <textarea
+              name="address"
+              value={profile.address}
+              onChange={handleChange}
+              disabled={!isEditing}
+              className="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
-            {/* Address */}
-            <div>
-              <label className="block font-semibold">Address:</label>
-              {editMode ? (
-                <input
-                  type="text"
-                  name="address"
-                  value={user.address}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2 mt-1"
-                />
-              ) : (
-                <p>{user.address}</p>
-              )}
-            </div>
-
-            {/* Bio */}
-            <div>
-              <label className="block font-semibold">Bio:</label>
-              {editMode ? (
-                <textarea
-                  name="bio"
-                  value={user.bio}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2 mt-1"
-                />
-              ) : (
-                <p>{user.bio}</p>
-              )}
-            </div>
-
-            {editMode && (
+          <div className="flex gap-4 mt-4">
+            {isEditing ? (
+              <>
+                <button
+                  onClick={handleUpdate}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
               <button
-                onClick={handleSave}
-                className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 mt-2"
+                onClick={() => setIsEditing(true)}
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
               >
-                Save Changes
+                Edit Profile
               </button>
             )}
           </div>

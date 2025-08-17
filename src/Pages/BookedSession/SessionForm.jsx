@@ -12,7 +12,6 @@ const SessionForm = () => {
     reset,
     formState: { errors },
   } = useForm();
-
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
 
@@ -37,11 +36,9 @@ const SessionForm = () => {
       toast.error('Invalid image URL');
       return;
     }
-
     const sessionData = {
       ...data,
     };
-
     try {
       const res = await axiosSecure.post('/sessions', sessionData);
       if (res.data.insertedId) {
@@ -59,86 +56,128 @@ const SessionForm = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg my-10">
-      <h2 className="text-2xl font-bold mb-6 text-center text-black">Create New Study Session</h2>
+    <div className="max-w-4xl mx-auto p-6 bg-base-100 shadow-md rounded-lg my-10">
+      <h2 className="text-2xl font-bold mb-6 text-center text-base-content">Create New Study Session</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* All input fields (same as before) */}
         {/* Title */}
         <div>
-          <label>Session Title</label>
-          <input {...register('title', { required: true })} className="input input-bordered w-full" />
-          {errors.title && <p className="text-red-500">Title is required</p>}
+          <label className="block text-base-content font-medium mb-1">Session Title</label>
+          <input
+            {...register('title', { required: true })}
+            className="input w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
+            placeholder="Enter session title"
+          />
+          {errors.title && <p className="text-error mt-1">Title is required</p>}
         </div>
-
         {/* Tutor Name */}
         <div>
-          <label>Tutor Name</label>
-          <input {...register('tutor', { required: true })} className="input input-bordered w-full" />
-          {errors.tutor && <p className="text-red-500">Tutor name is required</p>}
+          <label className="block text-base-content font-medium mb-1">Tutor Name</label>
+          <input
+            {...register('tutor', { required: true })}
+            className="input w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
+            placeholder="Enter tutor name"
+          />
+          {errors.tutor && <p className="text-error mt-1">Tutor name is required</p>}
         </div>
-
         {/* Description */}
         <div>
-          <label>Description</label>
-          <textarea {...register('description', { required: true })} className="textarea textarea-bordered w-full" />
-          {errors.description && <p className="text-red-500">Description is required</p>}
+          <label className="block text-base-content font-medium mb-1">Description</label>
+          <textarea
+            {...register('description', { required: true })}
+            className="textarea w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
+            placeholder="Enter session description"
+          />
+          {errors.description && <p className="text-error mt-1">Description is required</p>}
         </div>
-
         {/* Registration Start & End */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label>Registration Start</label>
-            <input type="date" {...register('registrationStart', { required: true })} className="input input-bordered w-full" />
-            {errors.registrationStart && <p className="text-red-500">Required</p>}
+            <label className="block text-base-content font-medium mb-1">Registration Start</label>
+            <input
+              type="date"
+              {...register('registrationStart', { required: true })}
+              className="input w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
+            />
+            {errors.registrationStart && <p className="text-error mt-1">Required</p>}
           </div>
           <div>
-            <label>Registration End</label>
-            <input type="date" {...register('registrationEnd', { required: true })} className="input input-bordered w-full" />
-            {errors.registrationEnd && <p className="text-red-500">Required</p>}
+            <label className="block text-base-content font-medium mb-1">Registration End</label>
+            <input
+              type="date"
+              {...register('registrationEnd', { required: true })}
+              className="input w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
+            />
+            {errors.registrationEnd && <p className="text-error mt-1">Required</p>}
           </div>
         </div>
-
         {/* Class Start & End */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label>Class Start</label>
-            <input type="datetime-local" {...register('classStart', { required: true })} className="input input-bordered w-full" />
+            <label className="block text-base-content font-medium mb-1">Class Start</label>
+            <input
+              type="datetime-local"
+              {...register('classStart', { required: true })}
+              className="input w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
+            />
+            {errors.classStart && <p className="text-error mt-1">Required</p>}
           </div>
           <div>
-            <label>Class End</label>
-            <input type="datetime-local" {...register('classEnd', { required: true })} className="input input-bordered w-full" />
+            <label className="block text-base-content font-medium mb-1">Class End</label>
+            <input
+              type="datetime-local"
+              {...register('classEnd', { required: true })}
+              className="input w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
+            />
+            {errors.classEnd && <p className="text-error mt-1">Required</p>}
           </div>
         </div>
-
         {/* Duration */}
         <div>
-          <label>Session Duration</label>
-          <input {...register('duration', { required: true })} className="input input-bordered w-full" placeholder="e.g. 2h 30m" />
+          <label className="block text-base-content font-medium mb-1">Session Duration</label>
+          <input
+            {...register('duration', { required: true })}
+            className="input w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
+            placeholder="e.g. 2h 30m"
+          />
+          {errors.duration && <p className="text-error mt-1">Duration is required</p>}
         </div>
-
         {/* Fee */}
         <div>
-          <label>Fee (0 = Free)</label>
-          <input type="number" step="0.01" {...register('fee', { required: true, min: 0 })} className="input input-bordered w-full" />
+          <label className="block text-base-content font-medium mb-1">Fee (0 = Free)</label>
+          <input
+            type="number"
+            step="0.01"
+            {...register('fee', { required: true, min: 0 })}
+            className="input w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
+            placeholder="Enter fee"
+          />
+          {errors.fee && <p className="text-error mt-1">Fee is required and must be non-negative</p>}
         </div>
-
         {/* Image */}
         <div>
-          <label>Image URL</label>
-          <input {...register('image', { required: true })} className="input input-bordered w-full" />
+          <label className="block text-base-content font-medium mb-1">Image URL</label>
+          <input
+            {...register('image', { required: true })}
+            className="input w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
+            placeholder="Enter image URL"
+          />
+          {errors.image && <p className="text-error mt-1">Image URL is required</p>}
         </div>
-
         {/* Status */}
         <div>
-          <label>Status</label>
-          <select {...register('status')} className="select select-bordered w-full">
+          <label className="block text-base-content font-medium mb-1">Status</label>
+          <select
+            {...register('status')}
+            className="select w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
+          >
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
           </select>
         </div>
-
         {/* Submit Button */}
-        <button type="submit" className="btn btn-primary mt-4 w-full">Create Session</button>
+        <button type="submit" className="btn btn-primary mt-4 w-full rounded-lg">
+          Create Session
+        </button>
       </form>
     </div>
   );

@@ -4,7 +4,6 @@ import { useState } from "react";
 import useAuth from "../../Hooks/useAuth";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 
-
 const Tutors = () => {
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
@@ -49,9 +48,9 @@ const Tutors = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-base-100 rounded-xl shadow">
-      <h2 className="text-2xl font-bold mb-2">Become a Tutor</h2>
-      <p className="text-gray-500 mb-6">Fill out the form to apply as a tutor.</p>
+    <div className="max-w-3xl mx-auto p-6 bg-base-100 rounded-xl shadow-lg">
+      <h2 className="text-2xl font-bold mb-2 text-base-content">Become a Tutor</h2>
+      <p className="text-base-content/70 mb-6">Fill out the form to apply as a tutor.</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Name */}
@@ -59,7 +58,7 @@ const Tutors = () => {
           type="text"
           value={user?.displayName || ""}
           readOnly
-          className="input input-bordered text-black w-full bg-gray-100"
+          className="input input-bordered w-full bg-base-200 text-base-content placeholder-base-content/50"
         />
 
         {/* Email */}
@@ -67,45 +66,45 @@ const Tutors = () => {
           type="email"
           value={user?.email || ""}
           readOnly
-          className="input input-bordered text-black w-full bg-gray-100"
+          className="input input-bordered w-full bg-base-200 text-base-content placeholder-base-content/50"
         />
 
         {/* Education */}
         <input
           type="text"
           placeholder="Highest Education Qualification"
-          className="input input-bordered w-full"
+          className="input input-bordered w-full bg-base-100 text-base-content placeholder-base-content/50"
           {...register("education", { required: true })}
         />
         {errors.education && (
-          <span className="text-red-500 text-sm">Education is required</span>
+          <span className="text-error text-sm">Education is required</span>
         )}
 
         {/* Area of Expertise */}
         <input
           type="text"
           placeholder="Subject Expertise (e.g., Math, Physics)"
-          className="input input-bordered w-full"
+          className="input input-bordered w-full bg-base-100 text-base-content placeholder-base-content/50"
           {...register("expertise", { required: true })}
         />
         {errors.expertise && (
-          <span className="text-red-500 text-sm">Expertise is required</span>
+          <span className="text-error text-sm">Expertise is required</span>
         )}
 
         {/* Years of Experience */}
         <input
           type="number"
           placeholder="Years of Teaching Experience"
-          className="input input-bordered w-full"
+          className="input input-bordered w-full bg-base-100 text-base-content placeholder-base-content/50"
           {...register("experience", { required: true, min: 0 })}
         />
         {errors.experience && (
-          <span className="text-red-500 text-sm">Experience is required</span>
+          <span className="text-error text-sm">Experience is required</span>
         )}
 
         {/* Available Time */}
         <select
-          className="select select-bordered w-full"
+          className="select select-bordered w-full bg-base-100 text-base-content"
           value={availability}
           onChange={(e) => setAvailability(e.target.value)}
         >
@@ -118,21 +117,21 @@ const Tutors = () => {
         <input
           type="text"
           placeholder="Profile Photo URL"
-          className="input input-bordered w-full"
+          className="input input-bordered w-full bg-base-100 text-base-content placeholder-base-content/50"
           {...register("photo", { required: true })}
         />
         {errors.photo && (
-          <span className="text-red-500 text-sm">Photo URL is required</span>
+          <span className="text-error text-sm">Photo URL is required</span>
         )}
 
         {/* Short Bio */}
         <textarea
           placeholder="Short bio or introduction"
-          className="textarea textarea-bordered w-full"
+          className="textarea textarea-bordered w-full bg-base-100 text-base-content placeholder-base-content/50"
           {...register("bio")}
         ></textarea>
 
-        <button type="submit" className="btn btn-primary w-full text-black mt-4">
+        <button type="submit" className="btn btn-primary w-full text-primary-content mt-4">
           Submit Tutor Application
         </button>
       </form>

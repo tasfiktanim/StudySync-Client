@@ -24,7 +24,7 @@ const MyCreatedSessions = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Updated getSessionStatus with registrationEnd check:
+  // Updated getSessionStatus with safe date parsing
   const getSessionStatus = (session) => {
     if (!session.startDate || !session.endDate) {
       return session.status || 'pending';
@@ -35,13 +35,18 @@ const MyCreatedSessions = () => {
     const endDate = new Date(session.endDate);
     const registrationEnd = session.registrationEnd ? new Date(session.registrationEnd) : null;
 
+    // Check for invalid dates
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return 'pending';
+    }
+
     if (session.status === 'rejected') return 'rejected';
     if (session.status === 'pending') return 'pending';
     if (now < startDate) return 'upcoming';
 
     if (now >= startDate && now <= endDate) {
-      if (registrationEnd && now >= registrationEnd) {
-        return 'closed'; // registration time over during ongoing session period
+      if (registrationEnd && !isNaN(registrationEnd.getTime()) && now >= registrationEnd) {
+        return 'closed';
       }
       return 'ongoing';
     }
@@ -61,16 +66,14 @@ const MyCreatedSessions = () => {
       const res = await axiosSecure.get(`/sessions?email=${user?.email}&page=${page}&limit=${limit}`);
       return res.data;
     },
-    enabled: !!user?.email
+    enabled: !!user?.email && !!page,
   });
 
   const sessions = sessionData?.data || [];
-  const pagination = sessionData?.pagination || {};
+  const pagination = sessionData?.pagination || { totalPages: 0 };
 
-  // Filter sessions based on role:
-  // - User sees only approved sessions
-  // - Admin and Instructor see all
-  const filteredSessions = sessions.filter(session => {
+  // Filter sessions based on role
+  const filteredSessions = sessions.filter((session) => {
     if (role?.toLowerCase() === 'user') {
       return getSessionStatus(session) === 'approved';
     }
@@ -79,21 +82,21 @@ const MyCreatedSessions = () => {
 
   const approveMutation = useMutation({
     mutationFn: async ({ id, fee }) => {
-      return await axiosSecure.patch(`/sessions/${id}`, { 
-        status: 'approved', 
+      return await axiosSecure.patch(`/sessions/${id}`, {
+        status: 'approved',
         fee,
-        approvedAt: new Date().toISOString() 
+        approvedAt: new Date().toISOString(),
       });
     },
     onSuccess: () => {
       toast.success('Session approved successfully');
       queryClient.invalidateQueries(['mySessions', user?.email, page]);
-      document.getElementById('approve_modal').close();
+      document.getElementById('approve_modal')?.close();
     },
     onError: (error) => {
       toast.error('Failed to approve session');
       console.error('Approval error:', error);
-    }
+    },
   });
 
   const rejectMutation = useMutation({
@@ -102,18 +105,19 @@ const MyCreatedSessions = () => {
         status: 'rejected',
         rejectionReason,
         feedback,
-        rejectedAt: new Date().toISOString()
+        rejectedAt: new Date().toISOString(),
       });
     },
     onSuccess: () => {
       toast.success('Session rejected successfully');
       queryClient.invalidateQueries(['mySessions', user?.email, page]);
-      closeRejectModal();
+      setRejectModalOpen(false);
+      setSelectedSession(null);
     },
     onError: (error) => {
       toast.error('Failed to reject session');
       console.error('Rejection error:', error);
-    }
+    },
   });
 
   const deleteMutation = useMutation({
@@ -125,14 +129,14 @@ const MyCreatedSessions = () => {
         icon: 'success',
         title: 'Deleted!',
         text: 'The session has been deleted.',
-        confirmButtonColor: '#3085d6'
+        confirmButtonColor: 'var(--primary)',
       });
       queryClient.invalidateQueries(['mySessions', user?.email, page]);
     },
     onError: (error) => {
       toast.error('Failed to delete session');
       console.error('Deletion error:', error);
-    }
+    },
   });
 
   const updateMutation = useMutation({
@@ -142,19 +146,19 @@ const MyCreatedSessions = () => {
     onSuccess: () => {
       toast.success('Session updated successfully');
       queryClient.invalidateQueries(['mySessions', user?.email, page]);
-      document.getElementById('update_modal').close();
+      document.getElementById('update_modal')?.close();
     },
     onError: (error) => {
       toast.error('Failed to update session');
       console.error('Update error:', error);
-    }
+    },
   });
 
   const handleApprove = () => {
     if (!selectedSession) return;
     const parsedFee = approvalType === 'free' ? 0 : Number(fee);
     if (approvalType === 'paid' && (isNaN(parsedFee) || parsedFee <= 0)) {
-      toast.error("Please enter a valid fee amount.");
+      toast.error('Please enter a valid fee amount.');
       return;
     }
     approveMutation.mutate({ id: selectedSession._id, fee: parsedFee });
@@ -174,13 +178,13 @@ const MyCreatedSessions = () => {
 
   const handleRejectConfirm = () => {
     if (!rejectionReason.trim()) {
-      toast.error("Rejection reason is required.");
+      toast.error('Rejection reason is required.');
       return;
     }
     rejectMutation.mutate({
       id: selectedSession._id,
       rejectionReason,
-      feedback
+      feedback,
     });
   };
 
@@ -190,9 +194,9 @@ const MyCreatedSessions = () => {
       text: "You won't be able to recover this session!",
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!'
+      confirmButtonColor: 'var(--error)',
+      cancelButtonColor: 'var(--primary)',
+      confirmButtonText: 'Yes, delete it!',
     }).then((result) => {
       if (result.isConfirmed) {
         deleteMutation.mutate(id);
@@ -211,27 +215,27 @@ const MyCreatedSessions = () => {
         return 'text-green-600';
       case 'rejected':
       case 'closed':
-        return 'text-red-500';
+        return 'text-error';
       case 'pending':
         return 'text-yellow-500';
       case 'upcoming':
-        return 'text-blue-500';
+        return 'text-primary';
       default:
-        return 'text-gray-500';
+        return 'text-base-content';
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <h2 className="text-3xl font-bold mb-6">My Created Sessions</h2>
+    <div className="max-w-7xl mx-auto p-6 bg-base-100">
+      <h2 className="text-3xl font-bold mb-6 text-base-content">My Created Sessions</h2>
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <span className="loading loading-spinner loading-lg"></span>
+          <span className="loading loading-spinner loading-lg text-primary"></span>
         </div>
       ) : filteredSessions.length === 0 ? (
         <div className="text-center py-10">
-          <p className="text-xl">No sessions found</p>
+          <p className="text-xl text-base-content">No sessions found</p>
         </div>
       ) : (
         <>
@@ -244,25 +248,33 @@ const MyCreatedSessions = () => {
                 <div key={session._id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
                   <figure>
                     <img
-                      src={session.image || '/default-session.jpg'}
+                      src={session.image || 'https://via.placeholder.com/400x200?text=Session+Image'}
                       alt={session.title}
                       className="h-48 w-full object-cover"
-                      onError={(e) => { e.target.src = '/default-session.jpg'; }}
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/400x200?text=Session+Image';
+                      }}
                     />
                   </figure>
                   <div className="card-body">
-                    <h2 className="card-title">{session.title}</h2>
-                    <p className="text-sm text-gray-600 line-clamp-2">{session.description}</p>
-                    <div className="space-y-1 mt-2">
-                      <p><strong>Tutor:</strong> {session.tutor || 'Not specified'}</p>
+                    <h2 className="card-title text-base-content">{session.title}</h2>
+                    <p className="text-sm text-base-content/70 line-clamp-2">{session.description}</p>
+                    <div className="space-y-1 mt-2 text-base-content">
+                      <p>
+                        <strong>Tutor:</strong> {session.tutor || 'Not specified'}
+                      </p>
                       <p>
                         <strong>Status:</strong>{' '}
                         <span className={`capitalize font-semibold ${statusColor}`}>
                           {status}
                         </span>
                       </p>
-                      <p><strong>Duration:</strong> {session.duration || 'Not specified'}</p>
-                      <p><strong>Fee:</strong> ${session.fee || 0}</p>
+                      <p>
+                        <strong>Duration:</strong> {session.duration || 'Not specified'}
+                      </p>
+                      <p>
+                        <strong>Fee:</strong> ${session.fee || 0}
+                      </p>
                       {session.startDate && session.endDate && (
                         <p>
                           <strong>Dates:</strong>{' '}
@@ -274,12 +286,12 @@ const MyCreatedSessions = () => {
 
                     {/* Show rejection reason and feedback only to Admin and Instructor */}
                     {status === 'rejected' && (role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'instructor') && (
-                      <div className="bg-red-50 p-3 rounded mt-2 space-y-1">
-                        <p className="text-sm">
+                      <div className="bg-error/10 p-3 rounded mt-2 space-y-1">
+                        <p className="text-sm text-base-content">
                           <strong>Rejection Reason:</strong> {session.rejectionReason || 'Not provided'}
                         </p>
                         {session.feedback && (
-                          <p className="text-sm">
+                          <p className="text-sm text-base-content">
                             <strong>Feedback:</strong> {session.feedback}
                           </p>
                         )}
@@ -294,16 +306,18 @@ const MyCreatedSessions = () => {
                             onClick={() => {
                               setSelectedSession(session);
                               setApprovalType(session.fee === 0 ? 'free' : 'paid');
-                              setFee(session.fee);
-                              document.getElementById('approve_modal').showModal();
+                              setFee(session.fee || 0);
+                              document.getElementById('approve_modal')?.showModal();
                             }}
-                            className="btn btn-sm btn-success flex-1"
+                            className="btn btn-sm btn-success flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+                            aria-label="Approve session"
                           >
                             Approve
                           </button>
                           <button
                             onClick={() => openRejectModal(session)}
-                            className="btn btn-sm btn-warning flex-1"
+                            className="btn btn-sm btn-warning flex-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg"
+                            aria-label="Reject session"
                           >
                             Reject
                           </button>
@@ -313,17 +327,19 @@ const MyCreatedSessions = () => {
                       {role?.toLowerCase() === 'admin' && status !== 'pending' && status !== 'rejected' && (
                         <div className="flex gap-2 w-full">
                           <button
-                            className="btn btn-sm btn-info flex-1"
+                            className="btn btn-sm btn-info flex-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
                             onClick={() => {
                               setEditSession(session);
-                              document.getElementById('update_modal').showModal();
+                              document.getElementById('update_modal')?.showModal();
                             }}
+                            aria-label="Update session"
                           >
                             Update
                           </button>
                           <button
                             onClick={() => handleDelete(session._id)}
-                            className="btn btn-sm btn-error flex-1"
+                            className="btn btn-sm btn-error flex-1 bg-error hover:bg-error-dark text-white rounded-lg"
+                            aria-label="Delete session"
                           >
                             Delete
                           </button>
@@ -332,8 +348,9 @@ const MyCreatedSessions = () => {
 
                       {/* View Details button for everyone */}
                       <button
-                        className="btn btn-sm btn-primary w-full mt-2"
+                        className="btn btn-sm btn-primary w-full mt-2 rounded-lg"
                         onClick={() => handleBookNow(session._id)}
+                        aria-label="View session details"
                       >
                         View Details
                       </button>
@@ -348,9 +365,10 @@ const MyCreatedSessions = () => {
           {pagination.totalPages > 1 && (
             <div className="flex justify-center mt-8 gap-2">
               <button
-                className="btn btn-sm"
-                onClick={() => setPage(p => Math.max(p - 1, 1))}
+                className="btn btn-sm bg-base-200 text-base-content hover:bg-base-content hover:text-white rounded-lg"
+                onClick={() => setPage((p) => Math.max(p - 1, 1))}
                 disabled={page === 1}
+                aria-label="Previous page"
               >
                 Previous
               </button>
@@ -370,7 +388,8 @@ const MyCreatedSessions = () => {
                   <button
                     key={pageNum}
                     onClick={() => setPage(pageNum)}
-                    className={`btn btn-sm ${page === pageNum ? 'btn-primary' : 'btn-outline'}`}
+                    className={`btn btn-sm ${page === pageNum ? 'btn-primary' : 'bg-base-200 text-base-content hover:bg-base-content hover:text-white'} rounded-lg`}
+                    aria-label={`Go to page ${pageNum}`}
                   >
                     {pageNum}
                   </button>
@@ -378,9 +397,10 @@ const MyCreatedSessions = () => {
               })}
 
               <button
-                className="btn btn-sm"
-                onClick={() => setPage(p => Math.min(p + 1, pagination.totalPages))}
+                className="btn btn-sm bg-base-200 text-base-content hover:bg-base-content hover:text-white rounded-lg"
+                onClick={() => setPage((p) => Math.min(p + 1, pagination.totalPages))}
                 disabled={page === pagination.totalPages}
+                aria-label="Next page"
               >
                 Next
               </button>
@@ -391,30 +411,32 @@ const MyCreatedSessions = () => {
 
       {/* Approve Modal */}
       <dialog id="approve_modal" className="modal">
-        <div className="modal-box">
-          <h3 className="font-bold text-lg mb-4">Approve Session</h3>
+        <div className="modal-box bg-base-100">
+          <h3 className="font-bold text-lg mb-4 text-base-content">Approve Session</h3>
           <div className="form-control mb-4">
             <label className="label cursor-pointer">
-              <span className="label-text">Free Session</span>
+              <span className="label-text text-base-content font-medium">Free Session</span>
               <input
                 type="radio"
                 name="payment"
-                className="radio checked:bg-blue-500"
+                className="radio border-base-content/50 checked:bg-primary"
                 checked={approvalType === 'free'}
                 onChange={() => {
                   setApprovalType('free');
                   setFee(0);
                 }}
+                aria-label="Select free session"
               />
             </label>
             <label className="label cursor-pointer">
-              <span className="label-text">Paid Session</span>
+              <span className="label-text text-base-content font-medium">Paid Session</span>
               <input
                 type="radio"
                 name="payment"
-                className="radio checked:bg-blue-500"
+                className="radio border-base-content/50 checked:bg-primary"
                 checked={approvalType === 'paid'}
                 onChange={() => setApprovalType('paid')}
+                aria-label="Select paid session"
               />
             </label>
           </div>
@@ -422,37 +444,49 @@ const MyCreatedSessions = () => {
           {approvalType === 'paid' && (
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Session Fee</span>
+                <span className="label-text text-base-content font-medium">Session Fee</span>
               </label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-600">$</span>
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-base-content/70">$</span>
                 <input
                   type="number"
                   placeholder="Enter fee amount"
-                  className="input input-bordered w-full pl-8"
+                  className="input w-full pl-8 bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
                   value={fee}
                   min="0"
                   step="0.01"
                   onChange={(e) => setFee(parseFloat(e.target.value) || 0)}
+                  aria-describedby="fee-error"
                 />
               </div>
+              {approvalType === 'paid' && (isNaN(fee) || fee <= 0) && (
+                <p id="fee-error" className="text-error mt-1">
+                  Please enter a valid fee amount.
+                </p>
+              )}
             </div>
           )}
 
           <div className="modal-action">
             <button
-              className="btn mr-2"
-              onClick={() => document.getElementById('approve_modal').close()}
+              className="btn bg-base-200 text-base-content hover:bg-base-content hover:text-white rounded-lg"
+              onClick={() => document.getElementById('approve_modal')?.close()}
               disabled={approveMutation.isLoading}
+              aria-label="Cancel approval"
             >
               Cancel
             </button>
             <button
               onClick={handleApprove}
-              className="btn btn-success"
+              className="btn btn-success bg-green-600 hover:bg-green-700 text-white rounded-lg"
               disabled={approveMutation.isLoading}
+              aria-label="Confirm session approval"
             >
-              {approveMutation.isLoading ? 'Approving...' : 'Confirm Approval'}
+              {approveMutation.isLoading ? (
+                <span className="loading loading-spinner text-white"></span>
+              ) : (
+                'Confirm Approval'
+              )}
             </button>
           </div>
         </div>
@@ -462,28 +496,34 @@ const MyCreatedSessions = () => {
       </dialog>
 
       {/* Reject Modal */}
-      <dialog open={rejectModalOpen} className="modal">
-        <div className="modal-box">
-          <h3 className="font-bold text-lg mb-4">Reject Session</h3>
+      <dialog id="reject_modal" className="modal">
+        <div className="modal-box bg-base-100">
+          <h3 className="font-bold text-lg mb-4 text-base-content">Reject Session</h3>
           <div className="form-control mb-4">
             <label className="label">
-              <span className="label-text font-semibold">Reason for Rejection (required)</span>
+              <span className="label-text font-semibold text-base-content">Reason for Rejection (required)</span>
             </label>
             <textarea
               rows={3}
-              className="textarea textarea-bordered w-full"
+              className="textarea w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="Please specify the reason for rejecting this session"
+              aria-describedby="rejection-error"
             />
+            {!rejectionReason.trim() && (
+              <p id="rejection-error" className="text-error mt-1">
+                Rejection reason is required.
+              </p>
+            )}
           </div>
           <div className="form-control mb-4">
             <label className="label">
-              <span className="label-text font-semibold">Feedback for Creator (optional)</span>
+              <span className="label-text font-semibold text-base-content">Feedback for Creator (optional)</span>
             </label>
             <textarea
               rows={3}
-              className="textarea textarea-bordered w-full"
+              className="textarea w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder="Provide constructive feedback to help improve the session"
@@ -492,80 +532,104 @@ const MyCreatedSessions = () => {
           <div className="modal-action">
             <button
               onClick={closeRejectModal}
-              className="btn btn-outline mr-2"
+              className="btn bg-base-200 text-base-content hover:bg-base-content hover:text-white rounded-lg"
               disabled={rejectMutation.isLoading}
+              aria-label="Cancel rejection"
             >
               Cancel
             </button>
             <button
               onClick={handleRejectConfirm}
-              className="btn btn-warning"
+              className="btn btn-warning bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg"
               disabled={rejectMutation.isLoading || !rejectionReason.trim()}
+              aria-label="Confirm session rejection"
             >
-              {rejectMutation.isLoading ? 'Rejecting...' : 'Confirm Rejection'}
+              {rejectMutation.isLoading ? (
+                <span className="loading loading-spinner text-white"></span>
+              ) : (
+                'Confirm Rejection'
+              )}
             </button>
           </div>
         </div>
+        <form method="dialog" className="modal-backdrop">
+          <button>close</button>
+        </form>
       </dialog>
 
       {/* Update Modal */}
       <dialog id="update_modal" className="modal">
-        <div className="modal-box">
-          <h3 className="font-bold text-lg mb-4">Update Session</h3>
+        <div className="modal-box bg-base-100">
+          <h3 className="font-bold text-lg mb-4 text-base-content">Update Session</h3>
           {editSession && (
             <div className="space-y-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Session Title</span>
+                  <span className="label-text text-base-content font-medium">Session Title</span>
                 </label>
                 <input
                   type="text"
-                  className="input input-bordered w-full"
+                  className="input w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
                   value={editSession.title}
-                  onChange={(e) =>
-                    setEditSession({ ...editSession, title: e.target.value })
-                  }
+                  onChange={(e) => setEditSession({ ...editSession, title: e.target.value })}
+                  placeholder="Enter session title"
+                  aria-describedby="title-error"
                 />
+                {!editSession.title.trim() && (
+                  <p id="title-error" className="text-error mt-1">
+                    Session title is required.
+                  </p>
+                )}
               </div>
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Duration</span>
+                  <span className="label-text text-base-content font-medium">Duration</span>
                 </label>
                 <input
                   type="text"
-                  className="input input-bordered w-full"
+                  className="input w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
                   value={editSession.duration}
-                  onChange={(e) =>
-                    setEditSession({ ...editSession, duration: e.target.value })
-                  }
+                  onChange={(e) => setEditSession({ ...editSession, duration: e.target.value })}
                   placeholder="e.g., 2 hours"
+                  aria-describedby="duration-error"
                 />
+                {!editSession.duration.trim() && (
+                  <p id="duration-error" className="text-error mt-1">
+                    Duration is required.
+                  </p>
+                )}
               </div>
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Session Fee ($)</span>
+                  <span className="label-text text-base-content font-medium">Session Fee ($)</span>
                 </label>
                 <input
                   type="number"
-                  className="input input-bordered w-full"
+                  className="input w-full bg-base-200 text-base-content border-2 border-base-content/20 focus:border-primary focus:outline-none rounded-lg transition-colors"
                   value={editSession.fee}
                   min="0"
                   step="0.01"
-                  onChange={(e) =>
-                    setEditSession({ ...editSession, fee: parseFloat(e.target.value) || 0 })
-                  }
+                  onChange={(e) => setEditSession({ ...editSession, fee: parseFloat(e.target.value) || 0 })}
+                  placeholder="Enter fee amount"
+                  aria-describedby="fee-error"
                 />
+                {(isNaN(editSession.fee) || editSession.fee < 0) && (
+                  <p id="fee-error" className="text-error mt-1">
+                    Please enter a valid fee amount.
+                  </p>
+                )}
               </div>
             </div>
           )}
 
           <div className="modal-action">
             <button
-              className="btn mr-2"
-              onClick={() => document.getElementById('update_modal').close()}
+              className="btn bg-base-200 text-base-content hover:bg-base-content hover:text-white rounded-lg"
+              onClick={() => document.getElementById('update_modal')?.close()}
               disabled={updateMutation.isLoading}
+              aria-label="Cancel update"
             >
               Cancel
             </button>
@@ -577,13 +641,18 @@ const MyCreatedSessions = () => {
                     title: editSession.title,
                     duration: editSession.duration,
                     fee: editSession.fee,
-                  }
+                  },
                 })
               }
-              className="btn btn-success"
-              disabled={updateMutation.isLoading}
+              className="btn btn-success bg-green-600 hover:bg-green-700 text-white rounded-lg"
+              disabled={updateMutation.isLoading || !editSession?.title.trim() || !editSession?.duration.trim() || isNaN(editSession.fee) || editSession.fee < 0}
+              aria-label="Save session changes"
             >
-              {updateMutation.isLoading ? 'Saving...' : 'Save Changes'}
+              {updateMutation.isLoading ? (
+                <span className="loading loading-spinner text-white"></span>
+              ) : (
+                'Save Changes'
+              )}
             </button>
           </div>
         </div>

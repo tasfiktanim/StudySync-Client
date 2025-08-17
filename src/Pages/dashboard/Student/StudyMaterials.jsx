@@ -9,10 +9,10 @@ const StudyMaterials = () => {
   const [selectedSessionId, setSelectedSessionId] = useState(null);
 
   // Get booked sessions
-  const { data: bookedSessions = [], isLoading: sessionsLoading,} = useQuery({
+  const { data: bookedSessions = [], isLoading: sessionsLoading } = useQuery({
     queryKey: ['bookedSessions', user?.email],
     queryFn: async () => {
-      const res = await axiosSecure.get(`/bookedSessions?email=${user.email}`);
+      const res = await axiosSecure.get(`/bookedSessions?email=${user?.email}`);
       return res.data || [];
     },
     enabled: !!user?.email,
@@ -32,27 +32,27 @@ const StudyMaterials = () => {
   const handleSessionClick = (sessionId) => setSelectedSessionId(sessionId);
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <h2 className="text-3xl font-bold mb-6">My Booked Sessions</h2>
+    <div className="max-w-7xl mx-auto p-6 bg-base-100">
+      <h2 className="text-3xl font-bold mb-6 text-base-content">My Booked Sessions</h2>
 
       {sessionsLoading ? (
-        <p>Loading booked sessions...</p>
+        <p className="text-base-content">Loading booked sessions...</p>
       ) : bookedSessions.length === 0 ? (
-        <p>No booked sessions found.</p>
+        <p className="text-base-content">No booked sessions found.</p>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {bookedSessions.map((session) => (
             <div
               key={session._id}
               onClick={() => handleSessionClick(session.sessionId || session._id)}
-              className={`cursor-pointer card bg-base-100 shadow-md p-4 ${
+              className={`cursor-pointer card bg-base-100 shadow-md p-4 hover:shadow-lg transition-shadow ${
                 selectedSessionId === (session.sessionId || session._id)
-                  ? 'border-4 border-blue-500'
-                  : ''
+                  ? 'border-4 border-primary'
+                  : 'border border-base-content/20'
               }`}
             >
-              <h3 className="text-xl font-semibold">{session.title}</h3>
-              <p className="text-sm text-gray-600">{session.description?.slice(0, 100)}...</p>
+              <h3 className="text-xl font-semibold text-base-content">{session.title}</h3>
+              <p className="text-sm text-base-content/70">{session.description?.slice(0, 100)}...</p>
             </div>
           ))}
         </div>
@@ -60,40 +60,45 @@ const StudyMaterials = () => {
 
       {selectedSessionId && (
         <>
-          <h3 className="text-2xl font-semibold mb-4">Study Materials</h3>
+          <h3 className="text-2xl font-semibold mb-4 text-base-content">Study Materials</h3>
           {materialsLoading ? (
-            <p>Loading materials...</p>
+            <p className="text-base-content">Loading materials...</p>
           ) : materials.length === 0 ? (
-            <p>No materials found for this session.</p>
+            <p className="text-base-content">No materials found for this session.</p>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {materials.map((material) => (
-                <div key={material._id} className="border rounded p-4 shadow">
+                <div key={material._id} className="border border-base-content/20 rounded-lg p-4 shadow bg-base-100">
                   <img
-                    src={material.imageUrl}
+                    src={material.imageUrl || 'https://via.placeholder.com/400x200?text=Material+Image'}
                     alt={material.title || 'Study material'}
                     className="w-full h-48 object-cover mb-4 rounded"
                     loading="lazy"
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/400x200?text=Material+Image';
+                    }}
                   />
                   <div className="flex justify-between items-center mb-2">
                     <a
                       href={material.driveLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
+                      className="text-primary hover:text-primary-dark transition-colors"
+                      aria-label={`Open Google Drive link for ${material.title || 'study material'}`}
                     >
                       Open Google Drive Link
                     </a>
                     <a
                       href={material.imageUrl}
                       download
-                      className="btn btn-sm btn-outline"
+                      className="btn btn-sm bg-base-200 text-primary border-primary border-2 hover:bg-primary hover:text-primary-content rounded-lg px-3 py-1"
                       title="Download Image"
+                      aria-label={`Download image for ${material.title || 'study material'}`}
                     >
                       Download
                     </a>
                   </div>
-                  {material.title && <p className="font-medium">{material.title}</p>}
+                  {material.title && <p className="font-medium text-base-content">{material.title}</p>}
                 </div>
               ))}
             </div>
